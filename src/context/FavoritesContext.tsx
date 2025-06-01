@@ -1,7 +1,7 @@
 import { createContext, useState, ReactNode } from 'react';
 import { Movie } from "../pages/Home";
 
-interface ContextProps {
+export interface ContextProps {
     favorites: Map<number, Movie>;
     setFavorite: (movie: Movie) => void;
 }

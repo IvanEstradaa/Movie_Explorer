@@ -1,4 +1,4 @@
-import { useEffect, useState, useContext} from "react";
+import { useEffect, useState, useContext, Context} from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
 import { Movie } from "./Home";
@@ -8,6 +8,14 @@ import ReviewForm from "../components/ReviewForm";
 import { db } from "../config/firebase";
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { lazy, Suspense, ReactNode } from "react";
+import { ContextProps } from "../context/FavoritesContext";
+
+interface Review {
+    movieId: number;
+    review: string;
+    userName: string;
+    userId: number;
+}
 
 const LazyImage = lazy(() => import('../components/LazyImage'));
 
@@ -17,15 +25,15 @@ const TMDB_API_URL = `https://api.themoviedb.org/3/movie`;
 export default function MovieDetails(){
     const {id} = useParams();
     const [movie, setMovie] = useState<Movie>();
-    const { setFavorite, favorites } = useContext(FavoritesContext);
+    const { setFavorite, favorites } = useContext<ContextProps>(FavoritesContext as Context<ContextProps>);
     const { user } = useContext(AuthContext);
-    const [reviews, setReviews] = useState([]);
+    const [reviews, setReviews] = useState<Review[]>([]);
 
     useEffect(() => {
         const reviewsRef = collection(db, "reviews");
         const q = query(reviewsRef, where("movieId", "==", parseInt(id?id:'-1')));
         getDocs(q).then((snapshot) => {
-            setReviews(snapshot.docs.map((doc) => doc.data()));
+            setReviews(snapshot.docs.map((doc) => doc.data() as Review));
         });
         axios.get(`${TMDB_API_URL}/${id}?api_key=${TMDB_API_KEY}`).then(
             (res) => setMovie(res.data)
@@ -52,8 +60,8 @@ export default function MovieDetails(){
         reviewDisplay = 
         <div className="p-4">
             <h1>Reviews</h1>
-            {reviews.map((r, index) => (
-                <p align="right" key={index}><strong>{r.review}</strong><br />by: {r.userName}</p>
+            {reviews.map((r: Review, index) => (
+                <p className="text-right" key={index}><strong>{r.review}</strong><br />by: {r.userName}</p>
             ))}
         </div>
     }
